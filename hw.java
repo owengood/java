@@ -68,8 +68,11 @@ public class GUI {
 	private int kernelSize = 0;
 	private final ImageProcessor imageProcessor = new ImageProcessor();
 	protected String filterMode = noneString;
+	private JPanel panel1 = new JPanel();
 	private JPanel title = new JPanel();
 	private JPanel controlbar = new JPanel();
+	private JPanel sub_controlbar1 = new JPanel();
+	private JPanel sub_controlbar2 = new JPanel();
 	private String currentOperation = erodeString;
 	private int currentShape = Imgproc.CV_SHAPE_RECT;
 	private JFrame frame = new JFrame(windowName);
@@ -106,9 +109,12 @@ public class GUI {
 		contentPane.setLayout(new BorderLayout());
 		JPanel panel1 = new JPanel();
 		JPanel panel2 = new JPanel();
-		panel1.setLayout(new GridLayout(2, 1));
-		controlbar.setLayout(new GridLayout(2, 1));
-		controlbar.setPreferredSize(new Dimension(700,100));
+		
+		panel1.setLayout(new GridLayout(3, 1));
+		controlbar.setLayout(new GridLayout(1, 2));
+		controlbar.setPreferredSize(new Dimension(1000,80));
+	
+
 		panel1.add(title);
 		title.setBackground(Color.lightGray);
 
@@ -135,10 +141,12 @@ public class GUI {
 		JPanel panel2_2_2 = new JPanel();
 
 	    
-		panel2_1.add(panel2_1_1, BorderLayout.CENTER);
-		panel2_1.add(panel2_1_2, BorderLayout.SOUTH);
-		panel2_2.add(panel2_2_1, BorderLayout.CENTER);
-		panel2_2.add(panel2_2_2, BorderLayout.SOUTH);
+		panel2_1.add(panel2_1_1, BorderLayout.NORTH);
+		panel2_1.add(panel2_1_2, BorderLayout.CENTER);
+		panel2_1.add(new JPanel(), BorderLayout.SOUTH);
+		panel2_2.add(panel2_2_1, BorderLayout.NORTH);
+		panel2_2.add(panel2_2_2, BorderLayout.CENTER);
+		panel2_2.add(new JPanel(), BorderLayout.SOUTH);
 		setupImage(panel2_1_2, panel2_2_2);
 		imageView1.setIcon(new ImageIcon(imageProcessor.toBufferedImage(output)));
 		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -237,6 +245,7 @@ public class GUI {
 				filterMode = event.getActionCommand();
 				processOperation_smoothing();
 				updateView();
+				
 			}
 		};
 		
@@ -247,9 +256,8 @@ public class GUI {
 				controlbar.removeAll();
 				currentOperation = event.getActionCommand();
 				setupSizeSlider(controlbar);
-
+				setupShapeRadioButtons(controlbar);
 				processOperation_morphological();	
-				
 				
 			}
 		};
@@ -309,6 +317,8 @@ public class GUI {
 		title.removeAll();
 		title.add(new JLabel(filterMode));
 		title.revalidate();
+		controlbar.revalidate();
+
 		imageView2.setIcon(new ImageIcon(outputImage));
 	}
 
@@ -317,6 +327,7 @@ public class GUI {
 		title.removeAll();
 		title.add(new JLabel(currentOperation));
 		title.revalidate();
+		controlbar.revalidate();
 		imageView2.setIcon(new ImageIcon(outputImage));
 	}
 
@@ -366,7 +377,7 @@ public class GUI {
 
 
 // morphorogical
-	private void setupShapeRadioButtons(JPanel controlbar2) {
+	private void setupShapeRadioButtons(JPanel controlbar) {
 		JRadioButton rectangleButton = new JRadioButton(rectangleString);
 		rectangleButton.setActionCommand(rectangleString);
 		rectangleButton.setSelected(true);
@@ -406,26 +417,24 @@ public class GUI {
 		GridLayout gridRowLayout = new GridLayout(1,0);
 		JPanel shapeRadioPanel = new JPanel(gridRowLayout);
 
-		JLabel shapeLabel = new JLabel("Shape:");
+		JLabel shapeLabel = new JLabel("Shape:", JLabel.CENTER);
 
 		shapeRadioPanel.add(rectangleButton);
 		shapeRadioPanel.add(ellipseButton);
 		shapeRadioPanel.add(crossButton);
 
-
+		
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.HORIZONTAL;
-
 		c.gridx = 0;
 		c.gridy = 2;
 
-
-		controlbar2.add(shapeLabel,c);
+		controlbar.add(shapeLabel,c);
 
 		c.gridx = 1;
 		c.gridy = 2;
 
-		controlbar2.add(shapeRadioPanel,c);
+		controlbar.add(shapeRadioPanel,c);
 	}
 
 private void setupSizeSlider(JPanel controlbar) {
@@ -433,7 +442,7 @@ private void setupSizeSlider(JPanel controlbar) {
 	sliderLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
 	int minimum = 0;
-	int maximum = 30;
+	int maximum = 25;
 	int initial =0;
 
 	JSlider levelSlider = new JSlider(JSlider.HORIZONTAL,
