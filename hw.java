@@ -68,11 +68,8 @@ public class GUI {
 	private int kernelSize = 0;
 	private final ImageProcessor imageProcessor = new ImageProcessor();
 	protected String filterMode = noneString;
-	private JPanel panel1 = new JPanel();
 	private JPanel title = new JPanel();
 	private JPanel controlbar = new JPanel();
-	private JPanel sub_controlbar1 = new JPanel();
-	private JPanel sub_controlbar2 = new JPanel();
 	private String currentOperation = erodeString;
 	private int currentShape = Imgproc.CV_SHAPE_RECT;
 	private JFrame frame = new JFrame(windowName);
@@ -104,7 +101,6 @@ public class GUI {
 
 	private JFrame createJFrame(String windowName) {				//smoothing
 
-		JFrame frame = new JFrame(windowName);
 		Container contentPane = frame.getContentPane();
 		contentPane.setLayout(new BorderLayout());
 		JPanel panel1 = new JPanel();
@@ -163,12 +159,10 @@ public class GUI {
 			JMenuItem reset =  new JMenuItem("Reset");
 			JMenuItem open = new JMenuItem("Open");
 			JMenuItem save = new JMenuItem("Save");
-			JMenuItem save_as = new JMenuItem("Save as");
 			JMenuItem exit = new JMenuItem("Exit");
 			file.add(reset);
 			file.add(open);
 			file.add(save);
-			file.add(save_as);
 			file.add(exit);
 			
 			reset.setActionCommand(resetString);
@@ -226,7 +220,7 @@ public class GUI {
 		mb.add(computer_vision);
 		mb.add(option);
 			
-		ActionListener fileListener = new ActionListener() {
+		ActionListener openfileListener = new ActionListener() {
 
 			public void actionPerformed(ActionEvent event) {
 				title.removeAll();
@@ -234,6 +228,26 @@ public class GUI {
 				filterMode = noneString;
 				openfile();
 				updateView();
+			}
+		};
+		
+		ActionListener savefileListener = new ActionListener() {
+
+			public void actionPerformed(ActionEvent event) {
+				title.removeAll();
+				controlbar.removeAll();
+				filterMode = noneString;
+				savefile();
+				updateView();
+			}
+		};
+		
+		ActionListener exitListener = new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				System.out.println("Aa");
+				frame.dispose();
+				
 			}
 		};
 		
@@ -263,7 +277,9 @@ public class GUI {
 		};
 		
 		reset.addActionListener(operationChangeListener_smoothing);
-		open.addActionListener(fileListener);
+		open.addActionListener(openfileListener);
+		save.addActionListener(savefileListener);
+		exit.addActionListener(exitListener);
 		Average_Filter.addActionListener(operationChangeListener_smoothing);
 		Gaussian_Filter.addActionListener(operationChangeListener_smoothing);
 		Median_Filter.addActionListener(operationChangeListener_smoothing);
@@ -283,11 +299,19 @@ public class GUI {
 		fd.setDirectory("C:");
 		fd.setVisible(true);
 		image = Imgcodecs.imread(fd.getDirectory());
+		frame.removeAll();
+
 		originalImage = image.clone();
 
 		updateView();
 	}
 
+	private void savefile(){
+		JFrame frame = new JFrame();
+		fd = new FileDialog(frame, "파일 저장", FileDialog.SAVE);
+		fd.setDirectory("C:");
+		fd.setVisible(true);
+	}
 	private void setupImage(JPanel panel1, JPanel panel2) {		
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.CENTER;
