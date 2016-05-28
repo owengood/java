@@ -503,7 +503,7 @@ public class GUI {
 		title.add(new JLabel(filterMode));
 		title.revalidate();
 		controlbar.revalidate();
-		
+		output = originalImage.clone();
 		imageView2.setIcon(new ImageIcon(outputImage));
 	}
 	private void updateView(Mat newMat) {
@@ -512,13 +512,13 @@ public class GUI {
 		title.add(new JLabel(currentOperation));
 		title.revalidate();
 		controlbar.revalidate();
-		
+		output = originalImage.clone();
 		title.setSize(title.getWidth(),title.getHeight());
 		imageView2.setIcon(new ImageIcon(outputImage));
 	}
 	private void processOperation_smoothing() {
 		if (noneString.equals(filterMode) || resetString.equals(filterMode)) {
-			output = image.clone();
+			output = originalImage.clone();
 		}
 		else {
 			output = new Mat(image.rows(), image.cols(), image.type());
@@ -1333,10 +1333,13 @@ public class GUI {
 		Imgproc.equalizeHist(grayImage, image);
 		updateView_histogram();
 		
+		
+		
 	}
 	private void updateView_histogram() {
 		Mat newMat = image;
 		Image outputImage1 = imageProcessor.toBufferedImage(newMat);
+		output = originalImage.clone();
 		imageView2.setIcon(new ImageIcon(outputImage1));
 		title.removeAll();
 		title.add(new JLabel(currentOperation));
