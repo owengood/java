@@ -31,6 +31,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 
 import java.awt.event.MouseListener;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.ButtonGroup;
 
@@ -96,6 +98,24 @@ public class GUI {
 	private static final String resetString = "Reset";
 	private static final String ellipseString = "Ellipse";
 	private static final String crossString = "Cross";
+	private static final String binaryInvString = "Binary inverted";
+	private static final String binaryString = "Binary";
+	private static final String truncateString = "Truncate";
+	private static final String thresholdToZeroString = "Threshold to zero";
+	private static final String invThresholdToZeroString = "Inverted threshold to zero";
+	private static final String adaptiveMeanString = "Adaptive Mean Binary";
+	
+	private Map<String, Integer> modeMap = new HashMap<String, Integer>();
+	{		
+		modeMap.put(binaryString, Imgproc.THRESH_BINARY);
+		modeMap.put(binaryInvString, Imgproc.THRESH_BINARY_INV);
+		modeMap.put(truncateString,	 Imgproc.THRESH_TRUNC);
+		modeMap.put(thresholdToZeroString, Imgproc.THRESH_TOZERO);
+		modeMap.put(invThresholdToZeroString, Imgproc.THRESH_TOZERO_INV);
+	}
+	private JLabel imageView;
+	private JLabel originalImageLabel; 
+	private Mat grayImage;
 	private JLabel imageView1 = new JLabel();
 	private JLabel imageView2 = new JLabel();
 	private String windowName;
@@ -104,14 +124,19 @@ public class GUI {
 	private Mat output;
 	private int kernelSize = 0;
 	private final ImageProcessor imageProcessor = new ImageProcessor();
+	
 	protected String filterMode = noneString;
-	private JPanel title = new JPanel();
-	private JPanel controlbar = new JPanel();
 	private String currentOperation = noneString;
+	private String thresholdMode = noneString;
+	
 	private int currentShape = Imgproc.CV_SHAPE_RECT;
 	private JFrame frame = new JFrame(windowName);
-	private JFrame toolbox = new JFrame();
-
+	private JFrame toolbox_edge = new JFrame();
+	private JFrame toolbox_morphological = new JFrame();
+	private JFrame toolbox_threshold = new JFrame();
+	private JFrame toolbox_pyramid = new JFrame();
+	private JPanel title = new JPanel();
+	private JPanel controlbar = new JPanel();
 	private FileDialog fd;
 	private int aperture = 3;
 	private int xOrder = 1;
@@ -129,6 +154,15 @@ public class GUI {
 	private JLabel yOrderSliderLabel;
 	private JLabel lowThresholdSliderLabel;
 	
+	private int level = 110;
+	private double maxval = 255;
+	private int blockSize = 3;
+	protected int constantC = 5;
+	private JSlider levelSlider;
+	private JSlider maxSlider;
+	private JSlider blockSlider;
+	private JSlider constantSlider;
+	
 	public GUI(String windowName, Mat newImage) {
 		super();
 		this.windowName = windowName;
@@ -138,12 +172,13 @@ public class GUI {
 		updateView();
 	}
 	public void init() {
-		setSystemLookAndFeel();
+		setSystemLookAndFeel_edge();
 		initGUI();
 	}
 	private void initGUI() {
 		JFrame frame = createJFrame(windowName);
-		JFrame subframe = createtoolbox();
+		createtoolbox1();
+		createtoolbox2();
 		updateView();
 		frame.setJMenuBar(creatMenu());
 		frame.pack();
@@ -192,21 +227,37 @@ public class GUI {
 		return frame;
 	}
 
-	private JFrame createtoolbox(){
-		JFrame tempframe = new JFrame();
-		toolbox.setTitle("ToolBox");
-		toolbox.setSize(500,350);
-		toolbox.setResizable(false);
-		toolbox.setLayout(new GridBagLayout());
-		setupTypeRadio(toolbox);
-		setupApertureSlider(toolbox);
-		setupXOrderSlider(toolbox);
-		setupYOrderSlider(toolbox);
-		setupLowThresholdSlider(toolbox);
-		setupHighThresholdSlider(toolbox);
+	private void createtoolbox1(){
+
+		toolbox_edge.setTitle("ToolBox");
+		toolbox_edge.setSize(500,350);
+		toolbox_edge.setResizable(false);
+		toolbox_edge.setLayout(new GridBagLayout());
+		setupTypeRadio_edge(toolbox_edge);
+		setupApertureSlider(toolbox_edge);
+		setupXOrderSlider(toolbox_edge);
+		setupYOrderSlider(toolbox_edge);
+		setupLowThresholdSlider(toolbox_edge);
+		setupHighThresholdSlider(toolbox_edge);
 		enableDisableSliders();
-		toolbox.setVisible(false);
-		return tempframe;
+		toolbox_edge.setVisible(false);
+
+	}
+	
+	private void createtoolbox2(){
+		toolbox_threshold.setTitle("ToolBox");
+		toolbox_threshold.setSize(1400,400);
+		toolbox_threshold.setResizable(false);
+		toolbox_threshold.setLayout(new GridBagLayout());
+		setupTypeRadio_threshold(toolbox_threshold);
+		setupThresholdSlider(toolbox_threshold);
+		setupMaxSlider(toolbox_threshold);
+		setupBlockSlider(toolbox_threshold);
+		setupCSlider(toolbox_threshold);
+		
+		enableDisableSliders();
+		toolbox_threshold.setVisible(false);
+
 	}
 
 	private JMenuBar creatMenu() {
@@ -299,7 +350,8 @@ public class GUI {
 				filterMode = event.getActionCommand();
 				processOperation_smoothing();
 				if(!resetString.equals(filterMode)){
-					toolbox.setVisible(false);
+					toolbox_edge.setVisible(false);
+					toolbox_threshold.setVisible(false);
 				}
 				frame.getContentPane().setSize(frame.getWidth(), frame.getHeight());
 				updateView();
@@ -307,7 +359,10 @@ public class GUI {
 		};
 		ActionListener operationChangeListener_morphological = new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
-				toolbox.setVisible(false);
+				if(!resetString.equals(filterMode)){
+					toolbox_edge.setVisible(false);
+					toolbox_threshold.setVisible(false);
+				}
 				title.removeAll();
 				controlbar.removeAll();
 				currentOperation = event.getActionCommand();
@@ -324,10 +379,9 @@ public class GUI {
 				
 				title.removeAll();
 				controlbar.removeAll();
-				toolbox.setVisible(true);
 				currentOperation = event.getActionCommand();
-				processOperation_type1();
-				
+				processOperation_histo();
+				setSystemLookAndFeel();
 			}
 		};
 		ActionListener operationChangeListener_thresholding = new ActionListener() {
@@ -336,9 +390,9 @@ public class GUI {
 				
 				title.removeAll();
 				controlbar.removeAll();
-				toolbox.setVisible(true);
+				toolbox_threshold.setVisible(true);
 				currentOperation = event.getActionCommand();
-				processOperation_type1();
+				processOperation_edge();
 				
 			}
 		};
@@ -348,9 +402,9 @@ public class GUI {
 				
 				title.removeAll();
 				controlbar.removeAll();
-				toolbox.setVisible(true);
+				toolbox_edge.setVisible(true);
 				currentOperation = event.getActionCommand();
-				processOperation_type1();
+				processOperation_edge();
 				
 			}
 		};
@@ -360,9 +414,9 @@ public class GUI {
 				
 				title.removeAll();
 				controlbar.removeAll();
-				toolbox.setVisible(true);
+				toolbox_pyramid.setVisible(true);
 				currentOperation = event.getActionCommand();
-				processOperation_type1();
+				processOperation_edge();
 				
 			}
 		};
@@ -409,7 +463,7 @@ public class GUI {
 		panel1.add(imageView1, c);
 		panel2.add(imageView2, c);
 	}
-	private void setSystemLookAndFeel() {
+	private void setSystemLookAndFeel_edge() {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (ClassNotFoundException e) {
@@ -476,7 +530,7 @@ public class GUI {
 		updateView(output);
 	}
 	
-	protected void processOperation_type1() {
+	protected void processOperation_edge() {
 
 		if(sobelString.equals(currentOperation)){
 			Imgproc.Sobel(originalImage, image, -1, xOrder,yOrder,aperture,1.0, 0.0);
@@ -598,7 +652,7 @@ public class GUI {
 
 				highThreshold  = (int)source.getValue();
 
-				processOperation_type1();
+				processOperation_edge();
 
 				updateView(image);
 
@@ -618,7 +672,7 @@ public class GUI {
 
 	}
 
-	private void setupTypeRadio(JFrame subframe) {
+	private void setupTypeRadio_edge(JFrame subframe) {
 		JRadioButton noneButton = new JRadioButton(noneString);
 		noneButton.setActionCommand(noneString);
 		noneButton.setSelected(true);
@@ -642,7 +696,7 @@ public class GUI {
 			public void actionPerformed(ActionEvent event) {
 				currentOperation = event.getActionCommand();
 				enableDisableSliders();
-				processOperation_type1();
+				processOperation_edge();
 			}
 		};
 
@@ -673,6 +727,88 @@ public class GUI {
 		c.gridy = 0;
 		subframe.add(radioOperationPanel,c);
 
+	}
+	private void setupTypeRadio_threshold(JFrame frame) {
+		JRadioButton noneButton = new JRadioButton(noneString);
+		noneButton.setMnemonic(KeyEvent.VK_O);
+		noneButton.setActionCommand(noneString);
+		noneButton.setSelected(true);
+		
+		
+		JRadioButton binaryButton = new JRadioButton(binaryString);
+		binaryButton.setMnemonic(KeyEvent.VK_B);
+		binaryButton.setActionCommand(binaryString);
+		
+		JRadioButton binaryInvButton = new JRadioButton(binaryInvString);
+		binaryInvButton.setMnemonic(KeyEvent.VK_I);
+		binaryInvButton.setActionCommand(binaryInvString);
+		
+		JRadioButton truncateButton = new JRadioButton(truncateString);
+		truncateButton.setMnemonic(KeyEvent.VK_T);
+		truncateButton.setActionCommand(truncateString);
+		
+		JRadioButton thresholdToZeroButton = new JRadioButton(thresholdToZeroString);
+		thresholdToZeroButton.setMnemonic(KeyEvent.VK_Z);
+		thresholdToZeroButton.setActionCommand(thresholdToZeroString);
+		
+		JRadioButton invThresholdToZeroButton = new JRadioButton(invThresholdToZeroString);
+		invThresholdToZeroButton.setMnemonic(KeyEvent.VK_N);
+		invThresholdToZeroButton.setActionCommand(invThresholdToZeroString);
+		
+		JRadioButton adaptiveMeanButton = new JRadioButton(adaptiveMeanString);
+		adaptiveMeanButton.setMnemonic(KeyEvent.VK_A);
+		adaptiveMeanButton.setActionCommand(adaptiveMeanString);
+		
+		ButtonGroup group = new ButtonGroup();
+		group.add(noneButton);
+		group.add(binaryButton);
+		group.add(binaryInvButton);
+		group.add(truncateButton);
+		group.add(thresholdToZeroButton);
+		group.add(invThresholdToZeroButton);
+		group.add(adaptiveMeanButton);
+		
+		
+
+		ActionListener operationChangeListener = new ActionListener() {
+
+			public void actionPerformed(ActionEvent event) {
+				thresholdMode = event.getActionCommand();
+				enableDisableSliders();
+				processOperation_threshold();
+			}
+		};
+		
+		noneButton.addActionListener(operationChangeListener);
+		binaryButton.addActionListener(operationChangeListener);
+		binaryInvButton.addActionListener(operationChangeListener);
+		truncateButton.addActionListener(operationChangeListener);			
+		thresholdToZeroButton.addActionListener(operationChangeListener);
+        invThresholdToZeroButton.addActionListener(operationChangeListener);
+        adaptiveMeanButton.addActionListener(operationChangeListener);
+        
+		GridLayout gridRowLayout = new GridLayout(1,0);
+		JPanel radioOperationPanel = new JPanel(gridRowLayout);
+
+		JLabel modeLabel = new JLabel("Mode:", JLabel.RIGHT);
+
+		radioOperationPanel.add(noneButton);
+		radioOperationPanel.add(binaryButton);
+		radioOperationPanel.add(binaryInvButton);
+		radioOperationPanel.add(truncateButton);
+		radioOperationPanel.add(thresholdToZeroButton);
+		radioOperationPanel.add(invThresholdToZeroButton);
+		radioOperationPanel.add(adaptiveMeanButton);
+		
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridx = 0;
+		c.gridy = 0;
+
+		frame.add(modeLabel,c);
+		c.gridx = 1;
+		c.gridy = 0;
+		frame.add(radioOperationPanel,c);
 	}
 
 
@@ -740,7 +876,20 @@ public class GUI {
 			highThresholdSlider.setEnabled(true);
 		}
 	}
+	protected void processOperation_threshold() {
 
+		if(adaptiveMeanString.equals(thresholdMode)){
+			Imgproc.adaptiveThreshold(originalImage, image, maxval, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, blockSize, constantC);	
+		}
+		else if(noneString.equals(thresholdMode)){
+			image = originalImage.clone();
+		}
+		else{
+			Imgproc.threshold(originalImage, image, level, maxval, modeMap.get(thresholdMode));
+		}
+		
+		updateView(image);
+	}
 
 	private void setupApertureSlider(JFrame subframe) {
 		apertureSliderLabel = new JLabel("Aperture size:", JLabel.CENTER);
@@ -770,7 +919,7 @@ public class GUI {
 				aperture = (int)source.getValue();
 
 
-				processOperation_type1();
+				processOperation_edge();
 
 				updateView(image);
 
@@ -809,7 +958,7 @@ public class GUI {
 			public void stateChanged(ChangeEvent e) {
 				JSlider source = (JSlider)e.getSource();
 				xOrder = (int)source.getValue();
-				processOperation_type1();
+				processOperation_edge();
 
 				updateView(image);
 
@@ -849,7 +998,7 @@ public class GUI {
 			public void stateChanged(ChangeEvent e) {
 				JSlider source = (JSlider)e.getSource();
 				yOrder = (int)source.getValue();
-				processOperation_type1();
+				processOperation_edge();
 				updateView(image);
 			}
 		});
@@ -888,7 +1037,7 @@ public class GUI {
 
 				lowThreshold  = (int)source.getValue();
 
-				processOperation_type1();
+				processOperation_edge();
 
 				updateView(image);
 
@@ -906,5 +1055,229 @@ public class GUI {
 		subframe.add(lowThresholdSlider,c);
 
 	}
+
+
+	// Histogram Equalization
+	protected void processOperation_histo() {
+		Imgproc.cvtColor(originalImage, grayImage, Imgproc.COLOR_RGB2GRAY);
+		Imgproc.equalizeHist(grayImage, image);
+		updateView();
+	}
+
+	private void setSystemLookAndFeel() {
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (UnsupportedLookAndFeelException e) {
+			e.printStackTrace();
+		}
+	}
+	//histo
+	
+	protected void enableDisableSliders_threshold() {
+		if(noneString.equals(thresholdMode)){
+			levelSlider   .setEnabled(false);
+			maxSlider     .setEnabled(false);
+			blockSlider   .setEnabled(false);
+			constantSlider.setEnabled(false);
+		}
+		else if(adaptiveMeanString.equals(thresholdMode)){
+			levelSlider   .setEnabled(false);
+			maxSlider     .setEnabled(true);
+			blockSlider   .setEnabled(true);
+			constantSlider.setEnabled(true);
+		}
+		else{
+			if(binaryString.equals(thresholdMode)|| 
+					binaryInvString.equals(thresholdMode)){
+				levelSlider   .setEnabled(true);
+				maxSlider     .setEnabled(true);
+				blockSlider   .setEnabled(false);
+				constantSlider.setEnabled(false);
+				
+			}
+			else{
+				levelSlider   .setEnabled(true);
+				maxSlider     .setEnabled(false);
+				blockSlider   .setEnabled(false);
+				constantSlider.setEnabled(false);
+			}
+		}
+		
+	}
+
+	private void setupThresholdSlider(JFrame frame) {
+		JLabel sliderLabel = new JLabel("Threshold:", JLabel.CENTER);
+		sliderLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		
+		int minimum = 0;
+		int maximum = 255;
+		int initial =110;
+
+		levelSlider = new JSlider(JSlider.HORIZONTAL,
+				minimum, maximum, initial);
+
+		levelSlider.setMajorTickSpacing(20);
+		levelSlider.setMinorTickSpacing(5);
+		levelSlider.setPaintTicks(true);
+		levelSlider.setPaintLabels(true);
+		levelSlider.addChangeListener(new ChangeListener() {
+
+			public void stateChanged(ChangeEvent e) {
+				JSlider source = (JSlider)e.getSource();
+				level = (int)source.getValue();
+				processOperation_threshold();
+				
+				updateView(image);
+				
+			}
+		});
+		
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridx = 0;
+		c.gridy = 1;
+
+		frame.add(sliderLabel,c);
+		c.gridx = 1;
+		c.gridy = 1;
+		frame.add(levelSlider,c);
+	}
+	
+
+	private void setupMaxSlider(JFrame frame) {
+		JLabel sliderLabel = new JLabel("Max value:", JLabel.CENTER);
+		sliderLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		
+		int minimum = 0;
+		int maximum = 255;
+		int initial =255;
+
+		maxSlider = new JSlider(JSlider.HORIZONTAL,
+				minimum, maximum, initial);
+
+		maxSlider.setMajorTickSpacing(20);
+		maxSlider.setMinorTickSpacing(5);
+		maxSlider.setPaintTicks(true);
+		maxSlider.setPaintLabels(true);
+		maxSlider.addChangeListener(new ChangeListener() {
+
+			public void stateChanged(ChangeEvent e) {
+				JSlider source = (JSlider)e.getSource();
+				maxval = (int)source.getValue();
+				processOperation_threshold();
+				
+				updateView(image);
+				
+			}
+		});
+		
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridx = 0;
+		c.gridy = 2;
+
+		frame.add(sliderLabel,c);
+		c.gridx = 1;
+		c.gridy = 2;
+		frame.add(maxSlider,c);
+		
+	}
+	
+	private void setupBlockSlider(JFrame frame) {
+		JLabel blockLabel = new JLabel("Block size:", JLabel.CENTER);
+		blockLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		
+		int minimum = 3;
+		int maximum = 255;
+		int initial =3;
+
+		blockSlider = new JSlider(JSlider.HORIZONTAL,
+				minimum, maximum, initial);
+
+		blockSlider.setMajorTickSpacing(20);
+		blockSlider.setMinorTickSpacing(2);
+		blockSlider.setPaintTicks(true);
+		blockSlider.setPaintLabels(true);
+		blockSlider.setSnapToTicks(true);
+		blockSlider.addChangeListener(new ChangeListener() {
+
+			public void stateChanged(ChangeEvent e) {
+				JSlider source = (JSlider)e.getSource();
+				
+				if(blockSlider.getValueIsAdjusting()){
+					int maybeEven = (int)source.getValue();					
+					blockSize  = ((maybeEven%2)==0)? (maybeEven+1) :maybeEven;
+				}
+				else{
+					blockSize = (int)source.getValue();
+				}
+				
+				processOperation_threshold();
+				
+				updateView(image);
+				
+			}
+		});
+		
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridx = 0;
+		c.gridy = 3;
+
+		frame.add(blockLabel,c);
+		c.gridx = 1;
+		c.gridy = 3;
+		frame.add(blockSlider,c);
+		
+	}
+	
+	private void setupCSlider(JFrame frame) {
+		JLabel constantLabel = new JLabel("C constant:", JLabel.CENTER);
+		constantLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		
+		int minimum = -100;
+		int maximum = 100;
+		int initial =5;
+
+		constantSlider = new JSlider(JSlider.HORIZONTAL,
+				minimum, maximum, initial);
+
+		constantSlider.setMajorTickSpacing(20);
+		constantSlider.setMinorTickSpacing(2);
+		constantSlider.setPaintTicks(true);
+		constantSlider.setPaintLabels(true);
+		constantSlider.setSnapToTicks(true);
+		constantSlider.addChangeListener(new ChangeListener() {
+
+			public void stateChanged(ChangeEvent e) {
+				JSlider source = (JSlider)e.getSource();
+				
+				constantC  = (int)source.getValue();
+				
+				processOperation_threshold();
+				
+				updateView(image);
+				
+			}
+		});
+		
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridx = 0;
+		c.gridy = 4;
+
+		frame.add(constantLabel,c);
+		c.gridx = 1;
+		c.gridy = 4;
+		frame.add(constantSlider,c);
+		
+	}
+	
 	
 }
