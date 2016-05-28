@@ -121,6 +121,7 @@ public class GUI {
 	private String windowName;
 	private Mat originalImage;
 	private Mat image;
+	private Mat originalImage_clone;
 	private Mat output;
 	private int kernelSize = 0;
 	private final ImageProcessor imageProcessor = new ImageProcessor();
@@ -169,6 +170,9 @@ public class GUI {
 		this.windowName = windowName;
 		this.image = newImage;
 		originalImage = newImage.clone();
+		this.grayImage = newImage.clone();
+		this.originalImage = newImage.clone();
+		this.originalImage_clone = newImage.clone();
 		processOperation_smoothing();
 		updateView();
 	}
@@ -366,10 +370,7 @@ public class GUI {
 				controlbar.removeAll();
 				filterMode = event.getActionCommand();
 				processOperation_smoothing();
-				if(!resetString.equals(filterMode)){
-					toolbox_edge.setVisible(false);
-					toolbox_threshold.setVisible(false);
-				}
+				frame.getContentPane().revalidate();
 				frame.getContentPane().setSize(frame.getWidth(), frame.getHeight());
 				updateView();
 			}
@@ -377,16 +378,13 @@ public class GUI {
 		
 		ActionListener operationChangeListener_morphological = new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
-				if(!resetString.equals(filterMode)){
-					toolbox_edge.setVisible(false);
-					toolbox_threshold.setVisible(false);
-				}
 				title.removeAll();
 				controlbar.removeAll();
 				currentOperation = event.getActionCommand();
 				setupSizeSlider(controlbar);
 				setupShapeRadioButtons(controlbar);
 				processOperation_morphological();
+				frame.getContentPane().revalidate();
 				frame.getContentPane().setSize(frame.getWidth(), frame.getHeight());
 				updateView(output);
 			}
@@ -399,7 +397,8 @@ public class GUI {
 				title.removeAll();
 				controlbar.removeAll();
 				currentOperation = event.getActionCommand();
-				processOperation_histo();
+				System.out.println(currentOperation);
+				processOperation_histogram();
 				setSystemLookAndFeel();
 			}
 		};
@@ -504,6 +503,7 @@ public class GUI {
 		title.add(new JLabel(filterMode));
 		title.revalidate();
 		controlbar.revalidate();
+		
 		imageView2.setIcon(new ImageIcon(outputImage));
 	}
 	private void updateView(Mat newMat) {
@@ -512,6 +512,7 @@ public class GUI {
 		title.add(new JLabel(currentOperation));
 		title.revalidate();
 		controlbar.revalidate();
+		
 		title.setSize(title.getWidth(),title.getHeight());
 		imageView2.setIcon(new ImageIcon(outputImage));
 	}
@@ -1078,28 +1079,6 @@ public class GUI {
 
 	}
 
-
-	// Histogram Equalization
-	protected void processOperation_histo() {
-		Imgproc.cvtColor(originalImage, grayImage, Imgproc.COLOR_RGB2GRAY);
-		Imgproc.equalizeHist(grayImage, image);
-		updateView();
-	}
-
-	private void setSystemLookAndFeel() {
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (UnsupportedLookAndFeelException e) {
-			e.printStackTrace();
-		}
-	}
-	//histo
 	
 	protected void enableDisableSliders_threshold() {
 		if(noneString.equals(thresholdMode)){
@@ -1347,6 +1326,37 @@ public class GUI {
 		buttonsPanel.add(laplacian);
 		frame.add(buttonsPanel);
 	}
-
+	
+	// Histogram Equalization
+	protected void processOperation_histogram() {
+		Imgproc.cvtColor(originalImage_clone, grayImage, Imgproc.COLOR_RGB2GRAY);
+		Imgproc.equalizeHist(grayImage, image);
+		updateView_histogram();
+		
+	}
+	private void updateView_histogram() {
+		Mat newMat = image;
+		Image outputImage1 = imageProcessor.toBufferedImage(newMat);
+		imageView2.setIcon(new ImageIcon(outputImage1));
+		title.removeAll();
+		title.add(new JLabel(currentOperation));
+		title.revalidate();
+		controlbar.revalidate();
+	}
+	
+	private void setSystemLookAndFeel() {
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (UnsupportedLookAndFeelException e) {
+			e.printStackTrace();
+		}
+	}
+	//histo
 	
 }
