@@ -361,6 +361,8 @@ public class GUI {
 				System.out.println(currentOperation);
 				processOperation_histogram();
 				setSystemLookAndFeel();
+				frame.getContentPane().revalidate();
+				frame.getContentPane().setSize(frame.getWidth(), frame.getHeight());
 			}
 		};
 	
@@ -373,6 +375,8 @@ public class GUI {
 				toolbox_threshold.setVisible(true);
 				currentOperation = event.getActionCommand();
 				processOperation_threshold();
+				frame.getContentPane().revalidate();
+				frame.getContentPane().setSize(frame.getWidth(), frame.getHeight());
 				
 			}
 		};
@@ -387,6 +391,8 @@ public class GUI {
 
 				currentOperation = event.getActionCommand();
 				processOperation_edge();
+				frame.getContentPane().revalidate();
+				frame.getContentPane().setSize(frame.getWidth(), frame.getHeight());
 				
 			}
 		};
@@ -398,7 +404,8 @@ public class GUI {
 				controlbar.removeAll();
 				toolbox_pyramid.setVisible(true);
 				currentOperation = event.getActionCommand();
-				
+				frame.getContentPane().revalidate();
+				frame.getContentPane().setSize(frame.getWidth(), frame.getHeight());
 			}
 		};
 		
