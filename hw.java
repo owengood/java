@@ -1,83 +1,41 @@
 package hw;
 
 import java.awt.BorderLayout;
-
 import java.awt.Color;
-
 import java.awt.Component;
-
 import java.awt.Container;
-
 import java.awt.Dimension;
-
 import java.awt.FileDialog;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
-
 import java.awt.GridBagLayout;
-
 import java.awt.GridLayout;
-
 import java.awt.Image;
-
-import java.awt.Toolkit;
-
 import java.awt.event.ActionEvent;
-
 import java.awt.event.ActionListener;
-
 import java.awt.event.KeyEvent;
-
-import java.awt.event.MouseEvent;
-
-import java.awt.event.MouseListener;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.swing.ButtonGroup;
-
-import javax.swing.Icon;
-
 import javax.swing.ImageIcon;
-
 import javax.swing.JButton;
-
 import javax.swing.JFrame;
-
 import javax.swing.JLabel;
-
 import javax.swing.JMenu;
-
 import javax.swing.JMenuBar;
-
 import javax.swing.JMenuItem;
-
 import javax.swing.JPanel;
-
 import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
 import javax.swing.JSlider;
-import javax.swing.SwingConstants;
 import javax.swing.UIManager;
-
 import javax.swing.UnsupportedLookAndFeelException;
-
 import javax.swing.WindowConstants;
-
 import javax.swing.event.ChangeEvent;
-
 import javax.swing.event.ChangeListener;
-
 import org.opencv.core.Core;
-
 import org.opencv.core.Mat;
-
-import org.opencv.core.Scalar;
-
 import org.opencv.core.Size;
-
 import org.opencv.imgcodecs.Imgcodecs;
-
 import org.opencv.imgproc.Imgproc;
 
 public class GUI {
@@ -361,8 +319,7 @@ public class GUI {
 		ActionListener exitListener = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				frame.setVisible(false);
-				frame.dispose();
+				System.exit(0);
 			}
 		};
 		
