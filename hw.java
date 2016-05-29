@@ -402,7 +402,7 @@ public class GUI {
 				setSystemLookAndFeel();
 			}
 		};
-		
+	
 		ActionListener operationChangeListener_thresholding = new ActionListener() {
 
 			public void actionPerformed(ActionEvent event) {
@@ -411,7 +411,7 @@ public class GUI {
 				controlbar.removeAll();
 				toolbox_threshold.setVisible(true);
 				currentOperation = event.getActionCommand();
-				processOperation_edge();
+				processOperation_threshold();
 				
 			}
 		};
@@ -437,7 +437,6 @@ public class GUI {
 				controlbar.removeAll();
 				toolbox_pyramid.setVisible(true);
 				currentOperation = event.getActionCommand();
-				processOperation_edge();
 				
 			}
 		};
@@ -554,18 +553,18 @@ public class GUI {
 	}
 	
 	protected void processOperation_edge() {
-
+		Imgproc.cvtColor(originalImage_clone, grayImage, Imgproc.COLOR_RGB2GRAY);
 		if(sobelString.equals(currentOperation)){
-			Imgproc.Sobel(originalImage, image, -1, xOrder,yOrder,aperture,1.0, 0.0);
+			Imgproc.Sobel(grayImage, image, -1, xOrder,yOrder,aperture,1.0, 0.0);
 //			Core.convertScaleAbs(image, image);
 		}
 		else if(laplaceString.equals(currentOperation)){
-			Imgproc.Laplacian(originalImage, image, -1, aperture, 1.0, 0.0);
+			Imgproc.Laplacian(grayImage, image, -1, aperture, 1.0, 0.0);
 //			Core.convertScaleAbs(image, image);
 //			Imgproc.threshold(image, image, 1, 255, Imgproc.THRESH_BINARY_INV);
 		}
 		else if(cannyString.equals(currentOperation)){
-			Imgproc.Canny(originalImage, image, lowThreshold, highThreshold, aperture, false);
+			Imgproc.Canny(grayImage, image, lowThreshold, highThreshold, aperture, false);
 		}
 		else if(noneString.equals(currentOperation)){
 			image = originalImage.clone();
@@ -900,15 +899,15 @@ public class GUI {
 		}
 	}
 	protected void processOperation_threshold() {
-
+		Imgproc.cvtColor(originalImage_clone, grayImage, Imgproc.COLOR_RGB2GRAY);
 		if(adaptiveMeanString.equals(thresholdMode)){
-			Imgproc.adaptiveThreshold(originalImage, image, maxval, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, blockSize, constantC);	
+			Imgproc.adaptiveThreshold(grayImage, image, maxval, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, blockSize, constantC);	
 		}
 		else if(noneString.equals(thresholdMode)){
 			image = originalImage.clone();
 		}
 		else{
-			Imgproc.threshold(originalImage, image, level, maxval, modeMap.get(thresholdMode));
+			Imgproc.threshold(grayImage, image, level, maxval, modeMap.get(thresholdMode));
 		}
 		
 		updateView(image);
