@@ -133,6 +133,10 @@ public class GUI {
 	private int currentShape = Imgproc.CV_SHAPE_RECT;
 	private JFrame frame = new JFrame(windowName);
 	
+	JPanel panel2_2_2 = new JPanel();
+	JPanel panel2_1_2 = new JPanel();
+	
+	
 	private JFrame toolbox_edge = new JFrame();
 	private JFrame toolbox_morphological = new JFrame();
 	private JFrame toolbox_threshold = new JFrame();
@@ -217,12 +221,12 @@ public class GUI {
 		JPanel panel2_1_1 = new JPanel();
 		JLabel la1 = new JLabel("Original Image");
 		panel2_1_1.add(la1);
-		JPanel panel2_1_2 = new JPanel();
+		
 		panel2_2.setSize(500,500);
 		JPanel panel2_2_1 = new JPanel();
 		JLabel la2 = new JLabel("Transformed Image");
 		panel2_2_1.add(la2);
-		JPanel panel2_2_2 = new JPanel();
+		
 		panel2_2_2.setSize(1000,1000);
 		panel2_1.add(panel2_1_1, BorderLayout.NORTH);
 		panel2_1.add(panel2_1_2, BorderLayout.CENTER);
@@ -357,7 +361,7 @@ public class GUI {
 		ActionListener exitListener = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-
+				frame.setVisible(false);
 				frame.dispose();
 			}
 		};
@@ -460,14 +464,26 @@ public class GUI {
 		return mb;
 	}
 	private void openfile() {
-		JFrame frame = new JFrame();
-		fd = new FileDialog(frame, "파일 열기", FileDialog.LOAD);
-		fd.setDirectory("C:");
-		fd.setVisible(true);
-		image = Imgcodecs.imread(fd.getDirectory());
-		frame.removeAll();
-		originalImage = image.clone();
-		updateView();
+		 JFrame frame = new JFrame();
+		 fd = new FileDialog(frame, "파일 열기", FileDialog.LOAD);
+		 fd.setDirectory("C:\\");
+		 fd.setVisible(true);
+		 String filePath = fd.getDirectory();
+		 String filename = fd.getFile();
+		 Mat newImage = Imgcodecs.imread(filePath+filename);
+		 System.out.println("Image resulation: "+newImage.rows() + "x"+newImage.cols());
+		 this.image = newImage;
+		 
+		 originalImage = newImage.clone();
+		 this.grayImage = newImage.clone();
+		 this.originalImage = newImage.clone();
+		 this.originalImage_clone = newImage.clone();
+		
+		 processOperation_smoothing();
+		 setupImage(panel2_1_2, panel2_2_2);
+		 imageView1.setIcon(new ImageIcon(imageProcessor.toBufferedImage(output)));
+		 updateView();
+		
 	}
 	private void savefile() {
 		JFrame frame = new JFrame();
