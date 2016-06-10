@@ -1,4 +1,3 @@
-package hw;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -26,6 +25,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -162,11 +162,15 @@ public class GUI {
 		JPanel panel1 = new JPanel();
 		JPanel panel2 = new JPanel();
 		panel1.setLayout(new GridLayout(3, 1));
+
 		controlbar.setLayout(new GridLayout(1, 2));
-		controlbar.setPreferredSize(new Dimension(700, 80));
 		panel1.add(title);
+		title.setSize(0,10);
 		title.setBackground(Color.lightGray);
 		panel1.add(controlbar);
+		JPanel temp = new JPanel();
+		temp.setPreferredSize(new Dimension(700, 10));
+		panel1.add(temp);
 		panel2.setLayout(new GridLayout(1, 2));
 		contentPane.add(panel1, BorderLayout.NORTH);
 		contentPane.add(panel2, BorderLayout.SOUTH);
@@ -197,27 +201,10 @@ public class GUI {
 		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		return frame;
 	}
-
-	private void createtoolbox1(){
-
-		toolbox_edge.setTitle("ToolBox");
-		toolbox_edge.setSize(500,350);
-		toolbox_edge.setResizable(false);
-		toolbox_edge.setLayout(new GridBagLayout());
-		setupTypeRadio_edge(toolbox_edge);
-		setupApertureSlider(toolbox_edge);
-		setupXOrderSlider(toolbox_edge);
-		setupYOrderSlider(toolbox_edge);
-		setupLowThresholdSlider(toolbox_edge);
-		setupHighThresholdSlider(toolbox_edge);
-		enableDisableSliders();
-		toolbox_edge.setVisible(false);
-
-	}
 	
 	private void createtoolbox2(){
-		toolbox_threshold.setTitle("ToolBox");
-		toolbox_threshold.setSize(1400,400);
+		toolbox_threshold.setTitle("ToolBox_Threshold");
+		toolbox_threshold.setSize(1900,500);
 		toolbox_threshold.setResizable(false);
 		toolbox_threshold.setLayout(new GridBagLayout());
 		setupTypeRadio_threshold(toolbox_threshold);
@@ -226,19 +213,35 @@ public class GUI {
 		setupBlockSlider(toolbox_threshold);
 		setupCSlider(toolbox_threshold);
 		
-		enableDisableSliders();
+		enableDisableSliders_threshold();
 		toolbox_threshold.setVisible(false);
+
+	}
+
+	private void createtoolbox1(){
+
+		toolbox_edge.setTitle("ToolBox_EdgeDetecting");
+		toolbox_edge.setSize(600,400);
+		toolbox_edge.setResizable(false);
+		toolbox_edge.setLayout(new GridBagLayout());
+		setupTypeRadio_edge(toolbox_edge);
+		setupApertureSlider(toolbox_edge);
+		setupXOrderSlider(toolbox_edge);
+		setupYOrderSlider(toolbox_edge);
+		setupLowThresholdSlider(toolbox_edge);
+		setupHighThresholdSlider(toolbox_edge);
+		enableDisableSliders_edge();
+		toolbox_edge.setVisible(false);
 
 	}
 	
 	private void createtoolbox3(){
 
-		toolbox_pyramid.setTitle("ToolBox");
-		toolbox_pyramid.setSize(450,150);
+		toolbox_pyramid.setTitle("ToolBox_ImagePyramid");
+		toolbox_pyramid.setSize(550,250);
 		toolbox_pyramid.setResizable(false);
 		toolbox_pyramid.setLayout(new GridBagLayout());
 		setupButton(toolbox_pyramid);
-		enableDisableSliders();
 		toolbox_edge.setVisible(false);
 
 	}
@@ -374,6 +377,7 @@ public class GUI {
 				controlbar.removeAll();
 				toolbox_threshold.setVisible(true);
 				currentOperation = event.getActionCommand();
+				enableDisableSliders_threshold();
 				processOperation_threshold();
 				frame.getContentPane().revalidate();
 				frame.getContentPane().setSize(frame.getWidth(), frame.getHeight());
@@ -497,7 +501,11 @@ public class GUI {
 	}
 	private void processOperation_smoothing() {
 		if (noneString.equals(filterMode) || resetString.equals(filterMode)) {
-			output = originalImage.clone();
+			thresholdMode = noneString;
+			currentOperation = noneString;
+			filterMode = noneString;
+			image = originalImage.clone();
+			updateView(originalImage);
 		}
 		else {
 			output = new Mat(image.rows(), image.cols(), image.type());
@@ -599,7 +607,7 @@ public class GUI {
 		c.gridy = 2;
 		controlbar.add(shapeRadioPanel, c);
 	}
-	private void setupSizeSlider(JPanel controlbar) {
+	private void setupSizeSlider(JPanel controlbar) {						//Morphological
 		JLabel sliderLabel = new JLabel("Kernel size:", JLabel.CENTER);
 		sliderLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		int minimum = 0;
@@ -631,48 +639,7 @@ public class GUI {
 	}
 	//2번째 추가
 	
-	private void setupHighThresholdSlider(JFrame subframe) {
-		highThresholdLabel = new JLabel("High threshold:", JLabel.CENTER);
-		highThresholdLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-		int minimum = 0;
-		int maximum = 255;
-		int initial = 50;
-
-		highThresholdSlider = new JSlider(JSlider.HORIZONTAL,
-				minimum, maximum, initial);
-
-		highThresholdSlider.setMajorTickSpacing(20);
-		highThresholdSlider.setMinorTickSpacing(2);
-		highThresholdSlider.setPaintTicks(true);
-		highThresholdSlider.setPaintLabels(true);
-		highThresholdSlider.setSnapToTicks(true);
-		highThresholdSlider.addChangeListener(new ChangeListener() {
-
-			public void stateChanged(ChangeEvent e) {
-				JSlider source = (JSlider)e.getSource();
-
-				highThreshold  = (int)source.getValue();
-
-				processOperation_edge();
-
-				updateView(image);
-
-			}
-		});
-
-		GridBagConstraints c = new GridBagConstraints();
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.gridx = 0;
-		c.gridy = 5;
-
-		subframe.add(highThresholdLabel,c);
-		c.gridx = 1;
-		c.gridy = 5;
-		subframe.add(highThresholdSlider,c);
-
-
-	}
+	
 
 	private void setupTypeRadio_edge(JFrame subframe) {
 		JRadioButton noneButton = new JRadioButton(noneString);
@@ -697,7 +664,7 @@ public class GUI {
 
 			public void actionPerformed(ActionEvent event) {
 				currentOperation = event.getActionCommand();
-				enableDisableSliders();
+				enableDisableSliders_edge();
 				processOperation_edge();
 			}
 		};
@@ -776,7 +743,7 @@ public class GUI {
 
 			public void actionPerformed(ActionEvent event) {
 				thresholdMode = event.getActionCommand();
-				enableDisableSliders();
+				enableDisableSliders_threshold();
 				processOperation_threshold();
 			}
 		};
@@ -814,7 +781,7 @@ public class GUI {
 	}
 
 
-	protected void enableDisableSliders() {
+	protected void enableDisableSliders_edge() {
 		apertureSlider.setMinimum(1);
 		apertureSlider.setMaximum(15);
 
@@ -878,6 +845,38 @@ public class GUI {
 			highThresholdSlider.setEnabled(true);
 		}
 	}
+	
+	protected void enableDisableSliders_threshold() {
+		if(noneString.equals(thresholdMode)){
+			levelSlider   .setEnabled(false);
+			maxSlider     .setEnabled(false);
+			blockSlider   .setEnabled(false);
+			constantSlider.setEnabled(false);
+		}
+		else if(adaptiveMeanString.equals(thresholdMode)){
+			levelSlider   .setEnabled(false);
+			maxSlider     .setEnabled(true);
+			blockSlider   .setEnabled(true);
+			constantSlider.setEnabled(true);
+		}
+		else{
+			if(binaryString.equals(thresholdMode)|| 
+					binaryInvString.equals(thresholdMode)){
+				levelSlider   .setEnabled(true);
+				maxSlider     .setEnabled(true);
+				blockSlider   .setEnabled(false);
+				constantSlider.setEnabled(false);
+				
+			}
+			else{
+				levelSlider   .setEnabled(true);
+				maxSlider     .setEnabled(false);
+				blockSlider   .setEnabled(false);
+				constantSlider.setEnabled(false);
+			}
+		}
+		
+	}
 	protected void processOperation_threshold() {
 		Imgproc.cvtColor(originalImage_clone, grayImage, Imgproc.COLOR_RGB2GRAY);
 		if(adaptiveMeanString.equals(thresholdMode)){
@@ -893,7 +892,7 @@ public class GUI {
 		updateView(image);
 	}
 
-	private void setupApertureSlider(JFrame subframe) {
+	private void setupApertureSlider(JFrame subframe) {				//edgedetecting
 		apertureSliderLabel = new JLabel("Aperture size:", JLabel.CENTER);
 		apertureSliderLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -940,7 +939,7 @@ public class GUI {
 	}
 
 
-	private void setupXOrderSlider(JFrame subframe) {
+	private void setupXOrderSlider(JFrame subframe) {				//edgedetecting
 		xOrderSliderLabel = new JLabel("Sobel X Order:", JLabel.CENTER);
 		xOrderSliderLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -979,7 +978,7 @@ public class GUI {
 
 	}
 
-	private void setupYOrderSlider(JFrame subframe) {
+	private void setupYOrderSlider(JFrame subframe) {		//edgedetecting
 		yOrderSliderLabel = new JLabel("Sobel Y order:", JLabel.CENTER);
 		yOrderSliderLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -1017,7 +1016,7 @@ public class GUI {
 
 	}
 
-	private void setupLowThresholdSlider(JFrame subframe) {
+	private void setupLowThresholdSlider(JFrame subframe) {			//edgedetecting
 		lowThresholdSliderLabel = new JLabel("Low threshold:", JLabel.CENTER);
 		lowThresholdSliderLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -1058,40 +1057,49 @@ public class GUI {
 
 	}
 
-	
-	protected void enableDisableSliders_threshold() {
-		if(noneString.equals(thresholdMode)){
-			levelSlider   .setEnabled(false);
-			maxSlider     .setEnabled(false);
-			blockSlider   .setEnabled(false);
-			constantSlider.setEnabled(false);
-		}
-		else if(adaptiveMeanString.equals(thresholdMode)){
-			levelSlider   .setEnabled(false);
-			maxSlider     .setEnabled(true);
-			blockSlider   .setEnabled(true);
-			constantSlider.setEnabled(true);
-		}
-		else{
-			if(binaryString.equals(thresholdMode)|| 
-					binaryInvString.equals(thresholdMode)){
-				levelSlider   .setEnabled(true);
-				maxSlider     .setEnabled(true);
-				blockSlider   .setEnabled(false);
-				constantSlider.setEnabled(false);
-				
-			}
-			else{
-				levelSlider   .setEnabled(true);
-				maxSlider     .setEnabled(false);
-				blockSlider   .setEnabled(false);
-				constantSlider.setEnabled(false);
-			}
-		}
-		
-	}
+	private void setupHighThresholdSlider(JFrame subframe) {					//edgedetecting
+		highThresholdLabel = new JLabel("High threshold:", JLabel.CENTER);
+		highThresholdLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-	private void setupThresholdSlider(JFrame frame) {
+		int minimum = 0;
+		int maximum = 255;
+		int initial = 50;
+
+		highThresholdSlider = new JSlider(JSlider.HORIZONTAL,
+				minimum, maximum, initial);
+
+		highThresholdSlider.setMajorTickSpacing(20);
+		highThresholdSlider.setMinorTickSpacing(2);
+		highThresholdSlider.setPaintTicks(true);
+		highThresholdSlider.setPaintLabels(true);
+		highThresholdSlider.setSnapToTicks(true);
+		highThresholdSlider.addChangeListener(new ChangeListener() {
+
+			public void stateChanged(ChangeEvent e) {
+				JSlider source = (JSlider)e.getSource();
+
+				highThreshold  = (int)source.getValue();
+
+				processOperation_edge();
+
+				updateView(image);
+
+			}
+		});
+
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridx = 0;
+		c.gridy = 5;
+
+		subframe.add(highThresholdLabel,c);
+		c.gridx = 1;
+		c.gridy = 5;
+		subframe.add(highThresholdSlider,c);
+
+
+	}
+	private void setupThresholdSlider(JFrame frame) {			//threshold
 		JLabel sliderLabel = new JLabel("Threshold:", JLabel.CENTER);
 		sliderLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		
@@ -1130,7 +1138,7 @@ public class GUI {
 	}
 	
 
-	private void setupMaxSlider(JFrame frame) {
+	private void setupMaxSlider(JFrame frame) {				//threshold
 		JLabel sliderLabel = new JLabel("Max value:", JLabel.CENTER);
 		sliderLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		
@@ -1169,7 +1177,7 @@ public class GUI {
 		
 	}
 	
-	private void setupBlockSlider(JFrame frame) {
+	private void setupBlockSlider(JFrame frame) {		//threshold
 		JLabel blockLabel = new JLabel("Block size:", JLabel.CENTER);
 		blockLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		
@@ -1217,7 +1225,7 @@ public class GUI {
 		
 	}
 	
-	private void setupCSlider(JFrame frame) {
+	private void setupCSlider(JFrame frame) {			//threshold
 		JLabel constantLabel = new JLabel("C constant:", JLabel.CENTER);
 		constantLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		
