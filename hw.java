@@ -37,6 +37,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.videoio.VideoCapture;
 
 public class GUI {
 
@@ -286,6 +287,7 @@ public class GUI {
 		morphological_operation.add(dilate);
 		morphological_operation.add(Open);
 		morphological_operation.add(close);
+		imgproc.addSeparator();
 		JMenuItem histogram_equalization = new JMenuItem("Histogram Equalization");
 		JMenuItem thresholding = new JMenuItem("Thresholding");
 		JMenuItem edge_detection = new JMenuItem("Edge Detection");
@@ -294,11 +296,13 @@ public class GUI {
 		imgproc.add(thresholding);
 		imgproc.add(edge_detection);
 		imgproc.add(image_pyramids);
-		JMenu computer_vision = new JMenu("Computer Vision");
+		JMenu Video = new JMenu("Video");
+		JMenuItem Cam_item = new JMenuItem("Cam");
+		JMenuItem Video_item = new JMenuItem("Video");
 		JMenu option = new JMenu("Option");
 		mb.add(file);
 		mb.add(imgproc);
-		mb.add(computer_vision);
+		mb.add(Video);
 		mb.add(option);
 		
 		ActionListener openfileListener = new ActionListener() {
@@ -1348,5 +1352,8 @@ public class GUI {
 		}
 	}
 	//histo
+	
+	//cap
+
 	
 }
