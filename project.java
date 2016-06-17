@@ -1,4 +1,3 @@
-// Lane detection
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -97,7 +96,7 @@ public class LaneDetection implements Runnable
 					double slope = (b-d)/(a-c);
 					double length = Math.sqrt(pow(a-c) + pow(b-d));
 					
-					if((slope > 0.5 && slope < 3) || (slope  -0.5 && slope > -3)){
+					if((slope > 0.5 && slope < 3) || (slope < -0.5 && slope > -3)){
 						Imgproc.line( VideoMatImage, new Point(a+Roi1_point1.x, b+Roi1_point1.y), new Point(c+Roi1_point1.x, d+Roi1_point1.y), new Scalar(255,0,0), 8, Core.LINE_AA,0);
 					}
 				}
