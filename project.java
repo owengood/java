@@ -30,7 +30,7 @@ public class LaneDetection implements Runnable
 	private JFrame frame;
 	private JLabel imageLabel;
 	private String path = System.getProperty("user.dir");
-	private VideoCapture videoplayer = new VideoCapture(path+"/src/ternal4.mp4");
+	private VideoCapture videoplayer = new VideoCapture(path+"/src/ternal.mp4");
 	private ImageProcessor imageProcessor = new ImageProcessor();
 	private Point Roi1_point1 = new Point(400,280);
 	private Point Roi1_point2 = new Point(850,350);
