@@ -22,21 +22,30 @@ public class LaneDetection implements Runnable
 	}
 	
 	private JFrame frame;
-	private JLabel imageLabel;
+	private JLabel imageLabel; 
 	private String path = System.getProperty("user.dir");
 	private VideoCapture videoplayer = new VideoCapture(path+"/src/ternal.mp4");
 	private ImageProcessor imageProcessor = new ImageProcessor();
-	private Point Roi1_point1 = new Point(400,280);
-	private Point Roi1_point2 = new Point(850,350);
-	private Point Roi2_point1 = new Point(250,350);
-	private Point Roi2_point2 = new Point(950,450);
-	private Point Roi3_point1 = new Point(150,450);
-	private Point Roi3_point2 = new Point(1190,650);
+	private Point Roi1_left_point1 = new Point(300,280);
+	private Point Roi1_left_point2 = new Point(800,350);
+	private Point Roi2_left_point1 = new Point(200,350);
+	private Point Roi2_left_point2 = new Point(800,450);
+	private Point Roi3_left_point1 = new Point(100,450);
+	private Point Roi3_left_point2 = new Point(800,650);
+	private Point Roi1_right_point1 = new Point(700,280);
+	private Point Roi1_right_point2 = new Point(1075,350);
+	private Point Roi2_right_point1 = new Point(700,350);
+	private Point Roi2_right_point2 = new Point(1150,450);
+	private Point Roi3_right_point1 = new Point(700,450);
+	private Point Roi3_right_point2 = new Point(1200,650);
 	private Point Roi4_point1 = new Point(150,280);
 	private Point Roi4_point2 = new Point(1190,650);
-	private Rect r1 = new Rect(Roi1_point1, Roi1_point2);
-	private Rect r2 = new Rect(Roi2_point1, Roi2_point2);
-	private Rect r3 = new Rect(Roi3_point1, Roi3_point2);
+	private Rect r1_L = new Rect(Roi1_left_point1, Roi1_left_point2);
+	private Rect r2_L = new Rect(Roi2_left_point1, Roi2_left_point2);
+	private Rect r3_L = new Rect(Roi3_left_point1, Roi3_left_point2);
+	private Rect r1_R = new Rect(Roi1_right_point1, Roi1_right_point2);
+	private Rect r2_R = new Rect(Roi2_right_point1, Roi2_right_point2);
+	private Rect r3_R = new Rect(Roi3_right_point1, Roi3_right_point2);
 	private Rect r4 = new Rect(Roi4_point1, Roi4_point2);
 	private Mat originalimage = new Mat();
 	private Mat VideoMatImage = new Mat(); 
@@ -71,9 +80,12 @@ public class LaneDetection implements Runnable
 				if( videoplayer.read(originalimage)){ 
 					videoplayer.read(originalimage);
 					VideoMatImage = originalimage.clone();
-					findLane(originalimage, VideoMatImage, r1, Roi1_point1, Roi1_point2, yellow);
-					findLane(originalimage, VideoMatImage, r2, Roi2_point1, Roi2_point2, green);
-					findLane(originalimage, VideoMatImage, r3, Roi3_point1, Roi3_point2, blue);
+					findLane(originalimage, VideoMatImage, r1_L, Roi1_left_point1, Roi1_left_point2, yellow);
+					findLane(originalimage, VideoMatImage, r2_L, Roi2_left_point1, Roi2_left_point2, green);
+					findLane(originalimage, VideoMatImage, r3_L, Roi3_left_point1, Roi3_left_point2, blue);
+					findLane(originalimage, VideoMatImage, r1_R, Roi1_right_point1, Roi1_right_point2, yellow);
+					findLane(originalimage, VideoMatImage, r2_R, Roi2_right_point1, Roi2_right_point2, green);
+					findLane(originalimage, VideoMatImage, r3_R, Roi3_right_point1, Roi3_right_point2, blue);
 					findLane(originalimage, VideoMatImage, r4, Roi4_point1, Roi4_point2, red);
 					updateView(VideoMatImage);
 					try {
@@ -110,6 +122,7 @@ public class LaneDetection implements Runnable
 		Mat grayscale = new Mat();	
 		Mat equal_histo = new Mat();
 		Mat Roi = new Mat(originalimage, r);
+		int count = 0;
 		//Imgproc.cvtColor(originalimage, grayscale, Imgproc.COLOR_BGR2GRAY);
 		Imgproc.cvtColor(Roi, grayscale, Imgproc.COLOR_BGR2GRAY);
 		Imgproc.equalizeHist(grayscale, equal_histo);
@@ -120,10 +133,10 @@ public class LaneDetection implements Runnable
 			Imgproc.HoughLinesP(canny, lines, 1, Math.PI/180, 50, 0, 50);
 		}else if(color.equals(green)){
 			bold = 7;
-			Imgproc.HoughLinesP(canny, lines, 1, Math.PI/180, 60, 0, 50);
+			Imgproc.HoughLinesP(canny, lines, 1, Math.PI/180, 80, 0, 50);
 		}else if(color.equals(blue)){
 			bold = 10;
-			Imgproc.HoughLinesP(canny, lines, 1, Math.PI/180, 70, 0, 50);
+			Imgproc.HoughLinesP(canny, lines, 1, Math.PI/180, 110, 0, 50);
 		}else{
 			bold = 1;
 			Imgproc.HoughLinesP(canny, lines, 1, Math.PI/180, 70, 0, 50);
@@ -138,11 +151,15 @@ public class LaneDetection implements Runnable
 			double d = lines.get(i, 0)[3];
 			double slope = (b-d)/(a-c);
 			double length = Math.sqrt(pow(a-c) + pow(b-d));
-			
+			if(count >= 2 ){
+				break;
+			}
 			
 			if((slope > 0.55 && slope < 3) || (slope < -0.55 && slope > -3)){
+				count++;
 				Imgproc.line( VideoMatImage, new Point(a+Roi_point1.x, b+Roi_point1.y), new Point(c+Roi_point1.x, d+Roi_point1.y), color, bold, Core.LINE_AA,0);
 			}
-		}		
+		}
+		
 	}
 }
