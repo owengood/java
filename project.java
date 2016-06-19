@@ -34,24 +34,17 @@ public class LaneDetection implements Runnable
 	private VideoCapture videoplayer = new VideoCapture(path+"/src/ternal.mp4");
 	private ImageProcessor imageProcessor = new ImageProcessor();
 	private Point Roi1_left_point1 = new Point(400,280);
-	private Point Roi1_left_point2 = new Point(800,350);
-	
+	private Point Roi1_left_point2 = new Point(800,350);	
 	private Point Roi2_left_point1 = new Point(200,350);
 	private Point Roi2_left_point2 = new Point(800,450);
-	
 	private Point Roi3_left_point1 = new Point(100,450);
 	private Point Roi3_left_point2 = new Point(800,650);
-	
-	
 	private Point Roi1_right_point1 = new Point(700,280);
 	private Point Roi1_right_point2 = new Point(900,350);
-	
 	private Point Roi2_right_point1 = new Point(700,350);
 	private Point Roi2_right_point2 = new Point(1100,450);
-	
 	private Point Roi3_right_point1 = new Point(700,450);
 	private Point Roi3_right_point2 = new Point(1200,650);
-	
 	private Point Roi4_point1 = new Point(100,280);
 	private Point Roi4_point2 = new Point(1200,650);
 	private Rect r1_L = new Rect(Roi1_left_point1, Roi1_left_point2);
@@ -67,14 +60,18 @@ public class LaneDetection implements Runnable
 	private Scalar green = new Scalar(100,255,0);
 	private Scalar blue = new Scalar(255,50,0);
 	private Scalar red = new Scalar(0,0,255);
-	//private Mat m = new Mat(3,3,CvType.CV_8UC1, new Scalar(1));
-	private double leftslope = 0;
-	private double rightslope = 0;
+	private Scalar white = new Scalar(255,255,255);
+	private double[] left_equation = null;
+	private double[] right_equation = null;
 	private JLabel console_content_direction = new JLabel();
 	private JLabel console_content_length1 = new JLabel();
 	private JLabel console_content_length2 = new JLabel();
 	private JLabel console_content_slope1 = new JLabel();
 	private JLabel console_content_slope2 = new JLabel();
+	private double leftslope = 0;
+	private double rightslope = 0;
+	protected int lowThreshold = 100;
+	protected int highThreshold = 240;
 	void initGUI_Video() {
 		frame = new JFrame("LaneDetection");
 		frame.setLayout(new BorderLayout());
@@ -128,7 +125,8 @@ public class LaneDetection implements Runnable
 					findLane(originalimage, VideoMatImage, r1_R, Roi1_right_point1, Roi1_right_point2, yellow);
 					findLane(originalimage, VideoMatImage, r2_R, Roi2_right_point1, Roi2_right_point2, green);
 					findLane(originalimage, VideoMatImage, r3_R, Roi3_right_point1, Roi3_right_point2, blue);
-					findLane(originalimage, VideoMatImage, r4, Roi4_point1, Roi4_point2, red);
+					findLane(originalimage, VideoMatImage, r4, Roi4_point1, Roi4_point2, white);
+					
 					updateView(VideoMatImage);
 					try {
 						Thread.sleep(10);
@@ -169,13 +167,13 @@ public class LaneDetection implements Runnable
 		//updateView(morphology);
 		//updateView(canny);
 		if(color.equals(yellow)){
-			bold = 5;
+			bold = 3;
 			Imgproc.HoughLinesP(canny, lines, 1, Math.PI/180, 30, 0, 50);
 		}else if(color.equals(green)){
-			bold = 7;
+			bold = 6;
 			Imgproc.HoughLinesP(canny, lines, 1, Math.PI/180, 50, 0, 50);
 		}else if(color.equals(blue)){
-			bold = 10;
+			bold = 9;
 			Imgproc.HoughLinesP(canny, lines, 1, Math.PI/180, 100, 0, 50);
 		}else{
 			bold = 2;
@@ -191,14 +189,16 @@ public class LaneDetection implements Runnable
 			double d = lines.get(i, 0)[3];
 			double slope = (b-d)/(a-c);
 			double length = Math.sqrt(pow(a-c) + pow(b-d));
-			if(count >= 2 ){
+			
+			if( count >= 2 ){
 				break;
 			}
 			
 			if((slope > 0.5 && slope < 3) || (slope < -0.5 && slope > -3)){
 				count++;
-				if(color.equals(red)){
+				if(color.equals(white)){
 					if(slope < 0){
+						left_equation = new double[] {-slope, 1 ,-a*slope+b};
 						leftslope = slope;
 						String temp = "(RED)Right line 기울기 : " + slope;
 						console_content_slope1.setText(temp);
@@ -206,12 +206,15 @@ public class LaneDetection implements Runnable
 						console_content_length1.setText(temp);
 					}
 					else{
+						right_equation = new double[] {-slope, 1 ,-a*slope+b};
 						rightslope = slope;
 						String temp = "(RED)Left line 기울기 : " + slope;
 						console_content_slope2.setText(temp);
 						temp = "(RED)Left line Length : " + length + "(px)";
 						console_content_length2.setText(temp);
 					}
+
+					Imgproc.line( VideoMatImage, new Point(a+Roi_point1.x, b+Roi_point1.y), new Point(c+Roi_point1.x, d+Roi_point1.y), color, bold, Core.LINE_AA,0);
 				}
 				
 				if( Math.abs(rightslope) >  Math.abs(leftslope))
@@ -219,8 +222,16 @@ public class LaneDetection implements Runnable
 				else
 					console_content_direction.setText("<-- 왼쪽 차선으로 치추침");
 				Imgproc.line( VideoMatImage, new Point(a+Roi_point1.x, b+Roi_point1.y), new Point(c+Roi_point1.x, d+Roi_point1.y), color, bold, Core.LINE_AA,0);
+				if(!(left_equation == null) && !(right_equation == null)){
+					double x = 0;
+					double y = 0;
+					double def = 1 / (left_equation[0] * right_equation[1] - left_equation[1] * right_equation[0]);
+					x = def*(right_equation[1]*left_equation[2] - left_equation[1] * right_equation[2])+100;
+					y = def*(-right_equation[0]*left_equation[2] + left_equation[0] * right_equation[2])+275;
+					Imgproc.line( VideoMatImage, new Point(x, y), new Point(x, y), red, bold, Core.LINE_AA,0);	
+					System.out.println("a = " + a + "b = " + b + "c = " + c + "d = " + d + "x = " + x + ", y = " + y);
+				}
 			}
 		}
-		
 	}
 }
