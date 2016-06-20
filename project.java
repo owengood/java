@@ -34,16 +34,16 @@ public class LaneDetection implements Runnable
 	private VideoCapture videoplayer = new VideoCapture(path+"/src/ternal.mp4");
 	private ImageProcessor imageProcessor = new ImageProcessor();
 	private Point Roi1_left_point1 = new Point(400,280);
-	private Point Roi1_left_point2 = new Point(800,350);	
+	private Point Roi1_left_point2 = new Point(725,350);	
 	private Point Roi2_left_point1 = new Point(200,350);
-	private Point Roi2_left_point2 = new Point(800,450);
+	private Point Roi2_left_point2 = new Point(725,450);
 	private Point Roi3_left_point1 = new Point(100,450);
-	private Point Roi3_left_point2 = new Point(800,650);
-	private Point Roi1_right_point1 = new Point(700,280);
+	private Point Roi3_left_point2 = new Point(725,650);
+	private Point Roi1_right_point1 = new Point(575,280);
 	private Point Roi1_right_point2 = new Point(900,350);
-	private Point Roi2_right_point1 = new Point(700,350);
+	private Point Roi2_right_point1 = new Point(575,350);
 	private Point Roi2_right_point2 = new Point(1100,450);
-	private Point Roi3_right_point1 = new Point(700,450);
+	private Point Roi3_right_point1 = new Point(575,450);
 	private Point Roi3_right_point2 = new Point(1200,650);
 	private Point Roi4_point1 = new Point(100,280);
 	private Point Roi4_point2 = new Point(1200,650);
@@ -126,7 +126,14 @@ public class LaneDetection implements Runnable
 					findLane(originalimage, VideoMatImage, r2_R, Roi2_right_point1, Roi2_right_point2, green);
 					findLane(originalimage, VideoMatImage, r3_R, Roi3_right_point1, Roi3_right_point2, blue);
 					findLane(originalimage, VideoMatImage, r4, Roi4_point1, Roi4_point2, white);
-					
+					//관심영역 화면에 출력하는  code
+//					Imgproc.rectangle(VideoMatImage, Roi1_left_point1, Roi1_left_point2, yellow,2);			
+//					Imgproc.rectangle(VideoMatImage, Roi2_left_point1, Roi2_left_point2, green,2);
+//					Imgproc.rectangle(VideoMatImage, Roi3_left_point1, Roi3_left_point2, blue,2);
+//					Imgproc.rectangle(VideoMatImage, Roi1_right_point1, Roi1_right_point2, yellow,2);
+//					Imgproc.rectangle(VideoMatImage, Roi2_right_point1, Roi2_right_point2, green,2);
+//					Imgproc.rectangle(VideoMatImage, Roi3_right_point1, Roi3_right_point2, blue,2);
+//					Imgproc.rectangle(VideoMatImage, Roi4_point1, Roi4_point2, (white),4);
 					updateView(VideoMatImage);
 					try {
 						Thread.sleep(10);
