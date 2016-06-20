@@ -207,17 +207,17 @@ public class LaneDetection implements Runnable
 					if(slope < 0){
 						left_equation = new double[] {-slope, 1 ,-a*slope+b};
 						leftslope = slope;
-						String temp = "(RED)Right line 기울기 : " + slope;
+						String temp = "(WHITE)Right line 기울기 : " + slope;
 						console_content_slope1.setText(temp);
-						temp = "(RED)Right line Length : " + length + "(px)";
+						temp = "(WHITE)Right line Length : " + length + "(px)";
 						console_content_length1.setText(temp);
 					}
 					else{
 						right_equation = new double[] {-slope, 1 ,-a*slope+b};
 						rightslope = slope;
-						String temp = "(RED)Left line 기울기 : " + slope;
+						String temp = "(WHITE)Left line 기울기 : " + slope;
 						console_content_slope2.setText(temp);
-						temp = "(RED)Left line Length : " + length + "(px)";
+						temp = "(WHITE)Left line Length : " + length + "(px)";
 						console_content_length2.setText(temp);
 					}
 
